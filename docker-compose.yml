@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./wiki-blank-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mappa la cartella locale nel container per il live-reload
+      - ./wiki-blank-backend:/app
+      # Evita di sovrascrivere i node_modules del container
+      - /app/node_modules
+    environment:
+      - PORT=3000
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wikiblank_db
+    ports:
+      - "5432:5432"
+    volumes:
+      # Rende persistenti i dati del DB anche se il container viene distrutto
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
