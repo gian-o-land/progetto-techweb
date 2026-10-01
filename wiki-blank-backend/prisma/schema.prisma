@@ -1,13 +1,29 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  games        Game[]
+}
+
+model Game {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  articleTitle   String
+  originalText   String   // L'articolo integro recuperato da Wikipedia
+  revealedWords  String[] // Array di parole indovinate dall'utente
+  attemptsCount  Int      @default(0)
+  timeElapsedSec Int      @default(0)
+  status         String   @default("IN_PROGRESS") // Stati possibili: IN_PROGRESS, WON, ABANDONED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
