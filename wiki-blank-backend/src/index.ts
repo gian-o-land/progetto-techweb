@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 //import { fetchValidRandomArticle, obfuscateText } from './services/mediawiki.service';
+import authRoutes from './routes/auth.routes';
 
 dotenv.config();
 
@@ -10,6 +11,8 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 // Rotta base
 app.get('/', (req: Request, res: Response) => {
