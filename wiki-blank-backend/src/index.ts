@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 //import { fetchValidRandomArticle, obfuscateText } from './services/mediawiki.service';
 import authRoutes from './routes/auth.routes';
+import gameRoutes from './routes/game.routes';
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/games', gameRoutes);
 // Rotta base
 app.get('/', (req: Request, res: Response) => {
   res.send('Le API di WikiBlank sono operative!');
