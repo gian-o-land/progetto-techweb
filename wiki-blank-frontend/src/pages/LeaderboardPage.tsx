@@ -14,7 +14,7 @@ export default function LeaderboardPage() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/games/leaderboard');
+        const res = await fetch('http://192.168.242.128:3000/api/games/leaderboard');
         if (res.ok) {
           const data = await res.json();
           setLeaderboard(data);
