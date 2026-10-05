@@ -123,6 +123,7 @@ export default function GamePage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>WikiBlank</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => navigate('/history')} style={{ padding: '5px 10px', cursor: 'pointer' }}>Storico</button>
           <button onClick={() => navigate('/leaderboard')} style={{ padding: '5px 10px', cursor: 'pointer' }}>Classifica</button>
           <button onClick={handleLogout} style={{ padding: '5px 10px', cursor: 'pointer' }}>Logout</button>
         </div>

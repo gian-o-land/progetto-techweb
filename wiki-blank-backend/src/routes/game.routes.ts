@@ -1,11 +1,14 @@
 import { Router } from 'express';
-import { startGame, guessWord, guessTitle, getCurrentGame, getLeaderboard } from '../controllers/game.controller';
+import { startGame, guessWord, guessTitle, getCurrentGame, getLeaderboard, getCompletedGames } from '../controllers/game.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
 
 // Rotta pubblica per la leaderboard
 router.get('/leaderboard', getLeaderboard);
+
+// Rotta pubblica per la cronologia delle partite completate
+router.get('/history', getCompletedGames);
 
 // Tutte le rotte in questo file saranno protette dal middleware
 router.use(authenticateToken);

@@ -73,6 +73,11 @@ export default function LoginPage() {
         <Link to="/leaderboard" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#2196F3' }}>
           Guarda la Classifica Globale
         </Link>
+        <br/><br/>
+        <span>📖 Consulta l'archivio: </span>
+        <Link to="/history" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#2196F3' }}>
+          Vedi lo Storico Partite
+        </Link>
       </div>
     </div>
   );

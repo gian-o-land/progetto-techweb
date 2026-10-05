@@ -234,3 +234,32 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ error: 'Errore nel caricamento della classifica' });
   }
 };
+
+export const getCompletedGames = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Recuperiamo le ultime 50 partite vinte, dal più recente al più vecchio
+    const games = await prisma.game.findMany({
+      where: { status: 'WON' },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { username: true } }
+      },
+      take: 50 
+    });
+
+    const history = games.map(game => ({
+      id: game.id,
+      username: game.user.username,
+      title: game.articleTitle,
+      obfuscatedText: obfuscateText(game.originalText, game.revealedWords),
+      attemptsCount: game.attemptsCount,
+      timeElapsedSec: game.timeElapsedSec,
+      date: game.createdAt
+    }));
+
+    res.json(history);
+  } catch (error) {
+    console.error("Errore recupero storico:", error);
+    res.status(500).json({ error: 'Errore nel caricamento dello storico partite' });
+  }
+};
