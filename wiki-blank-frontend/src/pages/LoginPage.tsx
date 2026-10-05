@@ -68,6 +68,12 @@ export default function LoginPage() {
       <p style={{ marginTop: '20px' }}>
         Nuovo giocatore? <Link to="/register">Crea un account</Link>
       </p>
+      <div style={{ marginTop: '30px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px', textAlign: 'center' }}>
+        <span>🏆 Scopri i campioni: </span>
+        <Link to="/leaderboard" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#2196F3' }}>
+          Guarda la Classifica Globale
+        </Link>
+      </div>
     </div>
   );
 }

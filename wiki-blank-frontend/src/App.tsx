@@ -1,15 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import GamePage from './pages/GamePage';
+import LeaderboardPage from './pages/LeaderboardPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Per ora la home reindirizza al login, poi la cambieremo nella GameBoard */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<GamePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Routes>
     </BrowserRouter>
   );

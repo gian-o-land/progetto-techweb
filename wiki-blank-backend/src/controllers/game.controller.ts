@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../models/prismaClient';
 import { fetchValidRandomArticle, obfuscateText } from '../services/mediawiki.service';
@@ -139,12 +139,15 @@ export const guessTitle = async (req: AuthRequest, res: Response): Promise<void>
     const actualTitle = game.articleTitle.trim().toLowerCase();
 
     if (cleanGuess === actualTitle) {
-      // Vittoria: aggiorniamo lo stato e sveliamo il testo originale
+      // Calcola i secondi trascorsi dall'inizio della partita
+      const timeElapsed = Math.floor((Date.now() - game.createdAt.getTime()) / 1000);
+
       const wonGame = await prisma.game.update({
         where: { id: gameId },
         data: {
           status: 'WON',
-          attemptsCount: { increment: 1 }
+          attemptsCount: { increment: 1 },
+          timeElapsedSec: timeElapsed // Salviamo il tempo nel database
         }
       });
 
@@ -152,7 +155,8 @@ export const guessTitle = async (req: AuthRequest, res: Response): Promise<void>
         message: 'Hai vinto! Titolo indovinato.',
         status: wonGame.status,
         originalText: wonGame.originalText,
-        attemptsCount: wonGame.attemptsCount
+        attemptsCount: wonGame.attemptsCount,
+        timeElapsedSec: wonGame.timeElapsedSec
       });
     } else {
       // Errore: incrementiamo solo i tentativi
@@ -172,5 +176,61 @@ export const guessTitle = async (req: AuthRequest, res: Response): Promise<void>
   } catch (error) {
     console.error("Errore durante la verifica del titolo:", error);
     res.status(500).json({ error: 'Impossibile elaborare il tentativo' });
+  }
+};
+
+// Recupera la partita in corso se l'utente aggiorna la pagina
+export const getCurrentGame = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const game = await prisma.game.findFirst({
+      where: { userId: userId, status: 'IN_PROGRESS' },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!game) {
+      res.status(404).json({ message: 'Nessuna partita in corso' });
+      return;
+    }
+
+    const obfuscated = obfuscateText(game.originalText, game.revealedWords);
+    res.json({
+      gameId: game.id,
+      obfuscatedText: obfuscated,
+      revealedWords: game.revealedWords,
+      attemptsCount: game.attemptsCount,
+      status: game.status
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Errore nel recupero della partita' });
+  }
+};
+
+// Genera la classifica basata su partite vinte e tempo medio
+export const getLeaderboard = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await prisma.user.findMany({
+      include: {
+        games: { where: { status: 'WON' } }
+      }
+    });
+
+    const leaderboard = users.map(user => {
+      const wonGames = user.games;
+      const gamesWon = wonGames.length;
+      const totalTime = wonGames.reduce((acc, game) => acc + (game.timeElapsedSec || 0), 0);
+      const avgTimeSec = gamesWon > 0 ? Math.round(totalTime / gamesWon) : 0;
+
+      return { username: user.username, gamesWon, avgTimeSec };
+    })
+    .filter(u => u.gamesWon > 0) // Mostriamo solo chi ha vinto almeno una volta
+    .sort((a, b) => {
+      if (b.gamesWon !== a.gamesWon) return b.gamesWon - a.gamesWon; // 1° criterio: Partite vinte
+      return a.avgTimeSec - b.avgTimeSec; // 2° criterio: Tempo medio (minore è meglio)
+    });
+
+    res.json(leaderboard);
+  } catch (error) {
+    res.status(500).json({ error: 'Errore nel caricamento della classifica' });
   }
 };
