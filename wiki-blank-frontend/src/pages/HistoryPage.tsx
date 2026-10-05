@@ -5,6 +5,7 @@ interface GameHistoryEntry {
   id: number;
   username: string;
   title: string;
+  status: string;
   obfuscatedText: string;
   attemptsCount: number;
   timeElapsedSec: number;
@@ -45,7 +46,14 @@ export default function HistoryPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
           {history.map((game) => (
             <div key={game.id} style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '15px', backgroundColor: '#f9f9f9' }}>
-              <h3 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>{game.title}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <h3 style={{ margin: '0', color: '#2c3e50' }}>{game.title}</h3>
+                {game.status === 'WON' ? (
+                   <span style={{ backgroundColor: '#e8f5e9', color: '#2e7d32', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>Vinta 🏆</span>
+                ) : (
+                   <span style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>Persa 🏳️</span>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: '15px', marginBottom: '15px', fontSize: '14px', color: '#555' }}>
                 <span><strong>Giocatore:</strong> {game.username}</span>
                 <span><strong>Tentativi:</strong> {game.attemptsCount}</span>

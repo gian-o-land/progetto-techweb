@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface GameData {
@@ -9,6 +9,7 @@ interface GameData {
   timeElapsedSec?: number;
   status?: string;
   originalText?: string;
+  articleTitle?: string;
 }
 
 export default function GamePage() {
@@ -66,7 +67,7 @@ export default function GamePage() {
     }
   };
 
-  const handleWordGuess = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleWordGuess = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!wordGuess.trim() || !gameData) return;
 
@@ -89,7 +90,7 @@ export default function GamePage() {
     }
   };
 
-  const handleTitleGuess = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleTitleGuess = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!titleGuess.trim() || !gameData) return;
 
@@ -118,6 +119,35 @@ export default function GamePage() {
     navigate('/login');
   };
 
+  const handleSurrender = async (): Promise<void> => {
+    if (!gameData) return;
+    
+    // Piccola conferma per evitare click accidentali
+    if (!window.confirm('Sei sicuro di volerti arrendere? Il titolo e il testo verranno svelati.')) return;
+
+    try {
+      const res = await fetch(`http://192.168.242.128:3000/api/games/${gameData.gameId}/surrender`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGameData({ 
+          ...gameData, 
+          status: data.status, 
+          obfuscatedText: data.originalText, 
+          articleTitle: data.articleTitle, 
+          timeElapsedSec: data.timeElapsedSec 
+        });
+        setMessage(data.message);
+      } else {
+        setMessage(data.error);
+      }
+    } catch (err) {
+      setMessage('Errore durante la resa.' + err);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -143,6 +173,7 @@ export default function GamePage() {
             <div><strong>Tentativi:</strong> {gameData.attemptsCount}</div>
           </div>
 
+          {/* Banner Vittoria */}
           {gameData.status === 'WON' && (
             <div style={{ padding: '15px', backgroundColor: '#e8f5e9', border: '1px solid #4CAF50', borderRadius: '5px', marginBottom: '20px' }}>
               <h3 style={{ color: '#2e7d32', margin: '0 0 10px 0' }}>Hai Vinto! 🎉</h3>
@@ -154,8 +185,20 @@ export default function GamePage() {
             </div>
           )}
 
-          {gameData.status !== 'WON' && (
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+          {/* Banner Sconfitta */}
+          {gameData.status === 'LOST' && (
+            <div style={{ padding: '15px', backgroundColor: '#ffebee', border: '1px solid #f44336', borderRadius: '5px', marginBottom: '20px' }}>
+              <h3 style={{ color: '#c62828', margin: '0 0 10px 0' }}>Ti sei arreso 🏳️</h3>
+              <p>Il titolo dell'articolo era: <strong>{gameData.articleTitle}</strong></p>
+              <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                <button onClick={startGame} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Riprova con un nuovo articolo</button>
+              </div>
+            </div>
+          )}
+
+          {gameData.status !== 'WON' && gameData.status !== 'LOST' && (
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'center' }}>
               <form onSubmit={handleWordGuess} style={{ display: 'flex', gap: '5px' }}>
                 <input value={wordGuess} onChange={(e) => setWordGuess(e.target.value)} placeholder="Indovina una parola" style={{ padding: '8px' }} />
                 <button type="submit" style={{ padding: '8px', cursor: 'pointer' }}>Invia</button>
@@ -164,6 +207,9 @@ export default function GamePage() {
                 <input value={titleGuess} onChange={(e) => setTitleGuess(e.target.value)} placeholder="Indovina il titolo!" style={{ padding: '8px', borderColor: 'gold' }} />
                 <button type="submit" style={{ padding: '8px', cursor: 'pointer', backgroundColor: 'gold', border: '1px solid darkgoldenrod' }}>Risolvi</button>
               </form>
+              <button onClick={handleSurrender} style={{ padding: '8px 15px', cursor: 'pointer', backgroundColor: '#f44336', color: 'white', border: 'none', marginLeft: 'auto' }}>
+                Mi Arrendo
+              </button>
             </div>
           )}
 

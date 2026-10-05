@@ -239,7 +239,7 @@ export const getCompletedGames = async (req: Request, res: Response): Promise<vo
   try {
     // Recuperiamo le ultime 50 partite vinte, dal più recente al più vecchio
     const games = await prisma.game.findMany({
-      where: { status: 'WON' },
+      where: { status: { in: ['WON', 'LOST'] } },
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { username: true } }
@@ -251,6 +251,7 @@ export const getCompletedGames = async (req: Request, res: Response): Promise<vo
       id: game.id,
       username: game.user.username,
       title: game.articleTitle,
+      status: game.status,
       obfuscatedText: obfuscateText(game.originalText, game.revealedWords),
       attemptsCount: game.attemptsCount,
       timeElapsedSec: game.timeElapsedSec,
@@ -261,5 +262,47 @@ export const getCompletedGames = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error("Errore recupero storico:", error);
     res.status(500).json({ error: 'Errore nel caricamento dello storico partite' });
+  }
+};
+
+export const surrenderGame = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const gameId = parseInt(id as string, 10);
+    const userId = req.user!.userId;
+
+    const game = await prisma.game.findUnique({ where: { id: gameId } });
+
+    if (!game || game.userId !== userId) {
+      res.status(404).json({ error: 'Partita non trovata o non autorizzata' });
+      return;
+    }
+
+    if (game.status !== 'IN_PROGRESS') {
+      res.status(400).json({ error: 'Questa partita è già terminata' });
+      return;
+    }
+
+    const timeElapsed = Math.floor((Date.now() - game.createdAt.getTime()) / 1000);
+
+    const lostGame = await prisma.game.update({
+      where: { id: gameId },
+      data: {
+        status: 'LOST',
+        timeElapsedSec: timeElapsed
+      }
+    });
+
+    res.json({
+      message: 'Ti sei arreso. Ecco la soluzione!',
+      status: lostGame.status,
+      originalText: lostGame.originalText,
+      articleTitle: lostGame.articleTitle, // Restituiamo il titolo da mostrare all'utente
+      attemptsCount: lostGame.attemptsCount,
+      timeElapsedSec: lostGame.timeElapsedSec
+    });
+  } catch (error) {
+    console.error("Errore durante la resa:", error);
+    res.status(500).json({ error: 'Impossibile elaborare la resa' });
   }
 };

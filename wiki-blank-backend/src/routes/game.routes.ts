@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { startGame, guessWord, guessTitle, getCurrentGame, getLeaderboard, getCompletedGames } from '../controllers/game.controller';
+import { startGame, guessWord, guessTitle, getCurrentGame, getLeaderboard, getCompletedGames, surrenderGame } from '../controllers/game.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -17,4 +17,5 @@ router.get('/current', getCurrentGame);
 router.post('/start', startGame);
 router.post('/:id/guess', guessWord);
 router.post('/:id/guess-title', guessTitle);
+router.post('/:id/surrender', surrenderGame);
 export default router;
