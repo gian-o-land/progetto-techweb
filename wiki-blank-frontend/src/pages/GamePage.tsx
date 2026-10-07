@@ -31,7 +31,7 @@ export default function GamePage() {
     // Cerca una partita in corso al caricamento della pagina
     const fetchCurrentGame = async () => {
       try {
-        const res = await fetch('http://192.168.242.128:3000/api/games/current', {
+        const res = await fetch('http://192.168.0.134:3000/api/games/current', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -51,7 +51,7 @@ export default function GamePage() {
     try {
       setMessage('Caricamento articolo...');
       setGameData(null); // Resetta i dati precedenti
-      const res = await fetch('http://192.168.242.128:3000/api/games/start', {
+      const res = await fetch('http://192.168.0.134:3000/api/games/start', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
@@ -72,7 +72,7 @@ export default function GamePage() {
     if (!wordGuess.trim() || !gameData) return;
 
     try {
-      const res = await fetch(`http://192.168.242.128:3000/api/games/${gameData.gameId}/guess`, {
+      const res = await fetch(`http://192.168.0.134:3000/api/games/${gameData.gameId}/guess`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({ word: wordGuess })
@@ -95,7 +95,7 @@ export default function GamePage() {
     if (!titleGuess.trim() || !gameData) return;
 
     try {
-      const res = await fetch(`http://192.168.242.128:3000/api/games/${gameData.gameId}/guess-title`, {
+      const res = await fetch(`http://192.168.0.134:3000/api/games/${gameData.gameId}/guess-title`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({ title: titleGuess })
@@ -126,7 +126,7 @@ export default function GamePage() {
     if (!window.confirm('Sei sicuro di volerti arrendere? Il titolo e il testo verranno svelati.')) return;
 
     try {
-      const res = await fetch(`http://192.168.242.128:3000/api/games/${gameData.gameId}/surrender`, {
+      const res = await fetch(`http://192.168.0.134:3000/api/games/${gameData.gameId}/surrender`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });

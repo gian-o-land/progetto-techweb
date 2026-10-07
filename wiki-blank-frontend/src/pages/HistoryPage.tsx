@@ -19,7 +19,7 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch('http://192.168.242.128:3000/api/games/history');
+        const res = await fetch('http://192.168.0.134:3000/api/games/history');
         if (res.ok) {
           const data = await res.json();
           setHistory(data);
