@@ -8,26 +8,110 @@ const DEFAULT_REVEALED_WORDS = ['il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno',
 
 export const startGame = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const { category } = req.body;
+
+    if (!category) {
+      res.status(400).json({ error: 'Devi selezionare un argomento per iniziare' });
+      return;
+    }
+
+    // Invece di una sola categoria radice, creiamo pool di SOTTOCATEGORIE ricchissime di articoli
+    const wikiCategories: Record<string, string[]> = {
+      'videogioco': [
+        "Categoria:Videogiochi_d'azione",
+        "Categoria:Videogiochi_di_ruolo",
+        "Categoria:Videogiochi_platform",
+        "Categoria:Videogiochi_sparatutto",
+        "Categoria:Videogiochi_d'avventura"
+      ],
+      'film': [
+        "Categoria:Film_commedia",
+        "Categoria:Film_drammatici",
+        "Categoria:Film_di_fantascienza",
+        "Categoria:Film_thriller",
+        "Categoria:Film_d'azione"
+      ],
+      'libro': [
+        "Categoria:Romanzi_del_XX_secolo",
+        "Categoria:Romanzi_del_XIX_secolo",
+        "Categoria:Romanzi_fantasy",
+        "Categoria:Romanzi_di_fantascienza",
+        "Categoria:Romanzi_gialli"
+      ],
+      'serie tv': [
+        "Categoria:Serie_televisive_comiche",
+        "Categoria:Serie_televisive_drammatiche",
+        "Categoria:Serie_televisive_di_fantascienza",
+        "Categoria:Serie_televisive_thriller",
+        "Categoria:Serie_televisive_d'azione"
+      ]
+    };
+
+    const targetCategoriesList = wikiCategories[category];
+    if (!targetCategoriesList) {
+      res.status(400).json({ error: 'Argomento non valido' });
+      return;
+    }
+
+    // Scegliamo una SOTTOCATEGORIA a caso dal nostro pool
+    const selectedSubcategory = targetCategoriesList[Math.floor(Math.random() * targetCategoriesList.length)];
+
+    // 1. Chiediamo a Wikipedia fino a 500 articoli appartenenti a quella specifica sottocategoria
+    const catUrl = `https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${selectedSubcategory}&cmnamespace=0&cmlimit=500&format=json`;
+    
+    const catResponse = await fetch(catUrl);
+    const catData = await catResponse.json();
+    const members = catData.query?.categorymembers;
+
+    if (!members || members.length === 0) {
+      res.status(500).json({ error: 'Nessun articolo trovato, riprova' });
+      return;
+    }
+
+    // 2. Estraiamo un TITOLO a caso (da qui in poi il tuo codice rimane identico!)
+    const randomArticle = members[Math.floor(Math.random() * members.length)];
+    const selectedTitle = randomArticle.title;
+    
+    // 3. Facciamo una SECONDA CHIAMATA per farci dare il testo di quel titolo specifico
+    const textUrl = `https://it.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles=${encodeURIComponent(selectedTitle)}&format=json`;
+    const textResponse = await fetch(textUrl);
+    const textData = await textResponse.json();
+    
+    // Estraiamo il testo dall'oggetto "pages" di Wikipedia
+    const pages = textData.query?.pages;
+    if (!pages) throw new Error("Errore nel parsing della pagina Wikipedia");
+    
+    const pageId = Object.keys(pages)[0];
+    if (!pageId) {
+      res.status(500).json({ error: 'ID pagina Wikipedia non trovato' });
+      return;
+    }
+    
+    const articleText = pages[pageId].extract;
+
+    if (!articleText || articleText.trim() === '') {
+      res.status(500).json({ error: 'Il testo di questo articolo è vuoto, riprova' });
+      return;
+    }
+
     const userId = req.user!.userId;
 
-    // 1. Recupera un articolo valido da Wikipedia
-    const article = await fetchValidRandomArticle();
-
-    // 2. Crea la nuova partita nel database
+    // 4. Ora salviamo il gioco nel DB usando il VERO testo (articleText)
     const newGame = await prisma.game.create({
       data: {
         userId: userId,
-        articleTitle: article.title,
-        originalText: article.originalText,
-        revealedWords: DEFAULT_REVEALED_WORDS,
+        articleTitle: selectedTitle,
+        originalText: articleText, // <--- Qui passiamo il testo appena scaricato!
+        revealedWords: DEFAULT_REVEALED_WORDS, // Assicurati di avere questa costante importata in cima
         status: 'IN_PROGRESS',
+        category: category,
       }
     });
 
-    // 3. Oscura il testo usando le parole base
-    const obfuscated = obfuscateText(article.originalText, DEFAULT_REVEALED_WORDS);
+    // Oscura il testo usando le parole base
+    const obfuscated = obfuscateText(articleText, DEFAULT_REVEALED_WORDS);
 
-    // 4. Invia i dati al frontend nascondendo il testo e il titolo originali
+    // Invia i dati al frontend
     res.status(201).json({
       gameId: newGame.id,
       obfuscatedText: obfuscated,
@@ -209,9 +293,17 @@ export const getCurrentGame = async (req: AuthRequest, res: Response): Promise<v
 // Genera la classifica basata su partite vinte e tempo medio
 export const getLeaderboard = async (req: Request, res: Response): Promise<void> => {
   try {
+    const { category } = req.query;
+
+    const gameFilter: any = { status: 'WON' };
+
+    if (category && category !== 'generale') {
+      gameFilter.category = category as string;
+    }
+    
     const users = await prisma.user.findMany({
       include: {
-        games: { where: { status: 'WON' } }
+        games: { where: gameFilter }
       }
     });
 
@@ -237,9 +329,17 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
 
 export const getCompletedGames = async (req: Request, res: Response): Promise<void> => {
   try {
+    const { category } = req.query;
+
+    const gameFilter: any = { status: { in: ['WON', 'LOST'] } };
+    
+    if (category && category !== 'generale') {
+      gameFilter.category = category as string;
+    }
+
     // Recuperiamo le ultime 50 partite vinte, dal più recente al più vecchio
     const games = await prisma.game.findMany({
-      where: { status: { in: ['WON', 'LOST'] } },
+      where: gameFilter,
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { username: true } }
@@ -252,6 +352,7 @@ export const getCompletedGames = async (req: Request, res: Response): Promise<vo
       username: game.user.username,
       title: game.articleTitle,
       status: game.status,
+      category: game.category,
       obfuscatedText: obfuscateText(game.originalText, game.revealedWords),
       attemptsCount: game.attemptsCount,
       timeElapsedSec: game.timeElapsedSec,

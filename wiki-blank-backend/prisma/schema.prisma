@@ -24,6 +24,7 @@ model Game {
   revealedWords  String[] // Array di parole indovinate dall'utente
   attemptsCount  Int      @default(0)
   timeElapsedSec Int      @default(0)
+  category       String   @default("generale")
   status         String   @default("IN_PROGRESS") // Stati possibili: IN_PROGRESS, WON, ABANDONED
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

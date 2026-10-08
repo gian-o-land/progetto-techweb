@@ -14,6 +14,7 @@ interface GameData {
 
 export default function GamePage() {
   const [gameData, setGameData] = useState<GameData | null>(null);
+  const [category, setCategory] = useState('');
   const [wordGuess, setWordGuess] = useState('');
   const [titleGuess, setTitleGuess] = useState('');
   const [message, setMessage] = useState('');
@@ -31,7 +32,7 @@ export default function GamePage() {
     // Cerca una partita in corso al caricamento della pagina
     const fetchCurrentGame = async () => {
       try {
-        const res = await fetch('http://192.168.0.134:3000/api/games/current', {
+        const res = await fetch('http://localhost:3000/api/games/current', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -51,9 +52,12 @@ export default function GamePage() {
     try {
       setMessage('Caricamento articolo...');
       setGameData(null); // Resetta i dati precedenti
-      const res = await fetch('http://192.168.0.134:3000/api/games/start', {
+      const res = await fetch('http://localhost:3000/api/games/start', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${getToken()}` }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ category })
       });
       const data = await res.json();
       if (res.ok) {
@@ -72,7 +76,7 @@ export default function GamePage() {
     if (!wordGuess.trim() || !gameData) return;
 
     try {
-      const res = await fetch(`http://192.168.0.134:3000/api/games/${gameData.gameId}/guess`, {
+      const res = await fetch(`http://localhost:3000/api/games/${gameData.gameId}/guess`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({ word: wordGuess })
@@ -95,7 +99,7 @@ export default function GamePage() {
     if (!titleGuess.trim() || !gameData) return;
 
     try {
-      const res = await fetch(`http://192.168.0.134:3000/api/games/${gameData.gameId}/guess-title`, {
+      const res = await fetch(`http://localhost:3000/api/games/${gameData.gameId}/guess-title`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
         body: JSON.stringify({ title: titleGuess })
@@ -126,7 +130,7 @@ export default function GamePage() {
     if (!window.confirm('Sei sicuro di volerti arrendere? Il titolo e il testo verranno svelati.')) return;
 
     try {
-      const res = await fetch(`http://192.168.0.134:3000/api/games/${gameData.gameId}/surrender`, {
+      const res = await fetch(`http://localhost:3000/api/games/${gameData.gameId}/surrender`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
@@ -164,9 +168,35 @@ export default function GamePage() {
       </div>
 
       {!gameData ? (
-        <button onClick={startGame} style={{ padding: '10px 20px', fontSize: '18px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>
-          Nuova Partita
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'flex-start', margin: '20px 0' }}>
+          <select 
+            value={category} 
+            onChange={(e) => setCategory(e.target.value)}
+            style={{ padding: '10px', fontSize: '16px', borderRadius: '5px', cursor: 'pointer' }}
+          >
+            <option value="" disabled>Seleziona argomento</option>
+            <option value="videogioco">Videogioco</option>
+            <option value="film">Film</option>
+            <option value="libro">Libro</option>
+            <option value="serie tv">Serie TV</option>
+          </select>
+          
+          <button 
+            onClick={startGame} 
+            disabled={!category} // Disabilitato se la categoria è una stringa vuota
+            style={{ 
+              padding: '10px 20px', 
+              fontSize: '18px', 
+              cursor: category ? 'pointer' : 'not-allowed', 
+              backgroundColor: category ? '#4CAF50' : '#cccccc', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '5px' 
+            }}
+          >
+            Nuova Partita
+          </button>
+        </div>
       ) : (
         <div>
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
@@ -179,7 +209,7 @@ export default function GamePage() {
               <h3 style={{ color: '#2e7d32', margin: '0 0 10px 0' }}>Hai Vinto! 🎉</h3>
               <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button onClick={startGame} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Gioca Ancora</button>
+                <button onClick={() => { setGameData(null); setMessage(''); }} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Nuova Partita</button>
                 <button onClick={() => navigate('/leaderboard')} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '5px' }}>Vedi Classifica</button>
               </div>
             </div>
@@ -192,7 +222,7 @@ export default function GamePage() {
               <p>Il titolo dell'articolo era: <strong>{gameData.articleTitle}</strong></p>
               <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button onClick={startGame} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Riprova con un nuovo articolo</button>
+                <button onClick={() => { setGameData(null); setMessage(''); }} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Scegli un nuovo articolo</button>
               </div>
             </div>
           )}
