@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 interface GameData {
   gameId: number;
@@ -19,16 +19,9 @@ export default function GamePage() {
   const [titleGuess, setTitleGuess] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-
-  const getToken = () => localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     // Cerca una partita in corso al caricamento della pagina
     const fetchCurrentGame = async () => {
       try {
@@ -46,7 +39,11 @@ export default function GamePage() {
     };
 
     fetchCurrentGame();
-  }, [navigate]);
+  }, [navigate, token]);
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
   const startGame = async () => {
     try {
@@ -56,7 +53,7 @@ export default function GamePage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}` },
+          'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ category })
       });
       const data = await res.json();
@@ -78,7 +75,7 @@ export default function GamePage() {
     try {
       const res = await fetch(`http://localhost:3000/api/games/${gameData.gameId}/guess`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ word: wordGuess })
       });
       const data = await res.json();
@@ -101,7 +98,7 @@ export default function GamePage() {
     try {
       const res = await fetch(`http://localhost:3000/api/games/${gameData.gameId}/guess-title`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ title: titleGuess })
       });
       const data = await res.json();
@@ -132,7 +129,7 @@ export default function GamePage() {
     try {
       const res = await fetch(`http://localhost:3000/api/games/${gameData.gameId}/surrender`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${getToken()}` }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
       if (res.ok) {
@@ -153,26 +150,28 @@ export default function GamePage() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>WikiBlank</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => navigate('/history')} style={{ padding: '5px 10px', cursor: 'pointer' }}>Storico</button>
-          <button onClick={() => navigate('/leaderboard')} style={{ padding: '5px 10px', cursor: 'pointer' }}>Classifica</button>
-          <button onClick={handleLogout} style={{ padding: '5px 10px', cursor: 'pointer' }}>Logout</button>
+    <div className="container">
+      <div className="space-between" style={{ marginBottom: '20px' }}>
+        <h2 className="title">WikiBlank</h2>
+        <div className="flex-row">
+          <button className="btn btn-primary" onClick={() => navigate('/leaderboard')}>Classifica</button>
+          <button className="btn btn-primary" onClick={() => navigate('/history')}>Storico</button>
+          <button className="btn btn-danger" onClick={handleLogout}>Esci</button>
         </div>
       </div>
 
-      <div style={{ margin: '20px 0', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
-        <strong>Stato:</strong> {message}
-      </div>
+      {message && (
+        <div className="card" style={{ backgroundColor: '#e0f2fe', borderColor: '#bae6fd', color: '#0369a1' }}>
+          {message}
+        </div>
+      )}
 
       {!gameData ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'flex-start', margin: '20px 0' }}>
+        <div className="card flex-row">
           <select 
+            className="select-field"
             value={category} 
             onChange={(e) => setCategory(e.target.value)}
-            style={{ padding: '10px', fontSize: '16px', borderRadius: '5px', cursor: 'pointer' }}
           >
             <option value="" disabled>Seleziona argomento</option>
             <option value="videogioco">Videogioco</option>
@@ -182,71 +181,69 @@ export default function GamePage() {
           </select>
           
           <button 
+            className="btn btn-success"
             onClick={startGame} 
-            disabled={!category} // Disabilitato se la categoria è una stringa vuota
-            style={{ 
-              padding: '10px 20px', 
-              fontSize: '18px', 
-              cursor: category ? 'pointer' : 'not-allowed', 
-              backgroundColor: category ? '#4CAF50' : '#cccccc', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '5px' 
-            }}
+            disabled={!category}
           >
             Nuova Partita
           </button>
         </div>
       ) : (
-        <div>
-          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div><strong>Tentativi:</strong> {gameData.attemptsCount}</div>
+        <>
+          <div className="card space-between">
+            <div>
+              <p><strong>Tentativi:</strong> {gameData.attemptsCount}</p>
+              <p><strong>Parole scoperte:</strong> {gameData.revealedWords.length}</p>
+            </div>
           </div>
 
           {/* Banner Vittoria */}
           {gameData.status === 'WON' && (
-            <div style={{ padding: '15px', backgroundColor: '#e8f5e9', border: '1px solid #4CAF50', borderRadius: '5px', marginBottom: '20px' }}>
-              <h3 style={{ color: '#2e7d32', margin: '0 0 10px 0' }}>Hai Vinto! 🎉</h3>
+            <div className="card" style={{ backgroundColor: '#ecfdf5', borderColor: '#10b981' }}>
+              <h3 style={{ color: 'var(--success-color)', marginBottom: '10px' }}>Hai Vinto! 🎉</h3>
               <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button onClick={() => { setGameData(null); setMessage(''); }} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Nuova Partita</button>
-                <button onClick={() => navigate('/leaderboard')} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '5px' }}>Vedi Classifica</button>
+              <div className="flex-row" style={{ marginTop: '15px' }}>
+                <button className="btn btn-success" onClick={() => { setGameData(null); setMessage(''); }}>Nuova Partita</button>
               </div>
             </div>
           )}
 
           {/* Banner Sconfitta */}
           {gameData.status === 'LOST' && (
-            <div style={{ padding: '15px', backgroundColor: '#ffebee', border: '1px solid #f44336', borderRadius: '5px', marginBottom: '20px' }}>
-              <h3 style={{ color: '#c62828', margin: '0 0 10px 0' }}>Ti sei arreso 🏳️</h3>
+            <div className="card" style={{ backgroundColor: '#fef2f2', borderColor: '#ef4444' }}>
+              <h3 style={{ color: 'var(--danger-color)', marginBottom: '10px' }}>Ti sei arreso 🏳️</h3>
               <p>Il titolo dell'articolo era: <strong>{gameData.articleTitle}</strong></p>
               <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button onClick={() => { setGameData(null); setMessage(''); }} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}>Scegli un nuovo articolo</button>
+              <div className="flex-row" style={{ marginTop: '15px' }}>
+                <button className="btn btn-success" onClick={() => { setGameData(null); setMessage(''); }}>Scegli un nuovo articolo</button>
               </div>
             </div>
           )}
 
+          {/* Form di gioco */}
           {gameData.status !== 'WON' && gameData.status !== 'LOST' && (
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'center' }}>
-              <form onSubmit={handleWordGuess} style={{ display: 'flex', gap: '5px' }}>
-                <input value={wordGuess} onChange={(e) => setWordGuess(e.target.value)} placeholder="Indovina una parola" style={{ padding: '8px' }} />
-                <button type="submit" style={{ padding: '8px', cursor: 'pointer' }}>Invia</button>
+            <div className="card flex-row">
+              <form onSubmit={handleWordGuess} className="flex-row">
+                <input className="input-field" value={wordGuess} onChange={(e) => setWordGuess(e.target.value)} placeholder="Indovina parola" />
+                <button type="submit" className="btn btn-primary">Invia</button>
               </form>
-              <form onSubmit={handleTitleGuess} style={{ display: 'flex', gap: '5px' }}>
-                <input value={titleGuess} onChange={(e) => setTitleGuess(e.target.value)} placeholder="Indovina il titolo!" style={{ padding: '8px', borderColor: 'gold' }} />
-                <button type="submit" style={{ padding: '8px', cursor: 'pointer', backgroundColor: 'gold', border: '1px solid darkgoldenrod' }}>Risolvi</button>
+              
+              <form onSubmit={handleTitleGuess} className="flex-row">
+                <input className="input-field" style={{ borderColor: 'var(--warning-color)' }} value={titleGuess} onChange={(e) => setTitleGuess(e.target.value)} placeholder="Indovina il titolo!" />
+                <button type="submit" className="btn" style={{ backgroundColor: 'var(--warning-color)', color: 'white' }}>Risolvi</button>
               </form>
-              <button onClick={handleSurrender} style={{ padding: '8px 15px', cursor: 'pointer', backgroundColor: '#f44336', color: 'white', border: 'none', marginLeft: 'auto' }}>
+
+              <button className="btn btn-danger" onClick={handleSurrender} style={{ marginLeft: 'auto' }}>
                 Mi Arrendo
               </button>
             </div>
           )}
 
-          <div style={{ lineHeight: '1.8', fontSize: '16px', whiteSpace: 'pre-wrap', backgroundColor: '#fff', padding: '20px', border: '1px solid #ccc', borderRadius: '5px' }}>
+          {/* Testo Offuscato */}
+          <div className="obfuscated-text-container">
             {gameData.obfuscatedText}
           </div>
-        </div>
+        </>
       )}
     </div>
   );

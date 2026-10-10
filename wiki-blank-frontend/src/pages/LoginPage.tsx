@@ -24,11 +24,8 @@ export default function LoginPage() {
         throw new Error(data.error || 'Credenziali non valide');
       }
 
-      // Salva il token e lo username nel browser
       localStorage.setItem('token', data.token);
       localStorage.setItem('username', data.username);
-      
-      // Rimanda l'utente alla schermata di gioco principale (che creeremo dopo)
       navigate('/');
     } catch (err) {
       if (err instanceof Error) {
@@ -40,44 +37,45 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', fontFamily: 'sans-serif' }}>
-      <h2>Accesso WikiBlank</h2>
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+    <div className="container auth-container">
+      <h2 className="title text-center">Accesso WikiBlank</h2>
+      {error && <div className="text-danger text-center">{error}</div>}
       
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <form onSubmit={handleSubmit} className="card flex-col">
         <input 
           type="text" 
+          className="input-field"
           placeholder="Username" 
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required 
-          style={{ padding: '10px', fontSize: '16px' }}
         />
         <input 
           type="password" 
+          className="input-field"
           placeholder="Password" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required 
-          style={{ padding: '10px', fontSize: '16px' }}
         />
-        <button type="submit" style={{ padding: '10px', fontSize: '16px', cursor: 'pointer' }}>
+        <button type="submit" className="btn btn-primary">
           Entra
         </button>
       </form>
-      <p style={{ marginTop: '20px' }}>
-        Nuovo giocatore? <Link to="/register">Crea un account</Link>
+
+      <p className="text-center text-muted" style={{ marginTop: '20px' }}>
+        Nuovo giocatore? <Link to="/register" className="link-text">Crea un account</Link>
       </p>
-      <div style={{ marginTop: '30px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px', textAlign: 'center' }}>
-        <span>🏆 Scopri i campioni: </span>
-        <Link to="/leaderboard" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#2196F3' }}>
-          Guarda la Classifica Globale
-        </Link>
-        <br/><br/>
-        <span>📖 Consulta l'archivio: </span>
-        <Link to="/history" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#2196F3' }}>
-          Vedi lo Storico Partite
-        </Link>
+
+      <div className="card text-center flex-col" style={{ marginTop: '30px', padding: '15px' }}>
+        <div>
+          <span>🏆 Scopri i campioni: </span>
+          <Link to="/leaderboard" className="link-text">Guarda la Classifica Globale</Link>
+        </div>
+        <div>
+          <span>📚 Consulta l'archivio: </span>
+          <Link to="/history" className="link-text">Vedi lo Storico Partite</Link>
+        </div>
       </div>
     </div>
   );

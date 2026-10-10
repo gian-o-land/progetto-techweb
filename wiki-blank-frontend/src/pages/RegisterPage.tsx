@@ -24,7 +24,6 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Errore durante la registrazione');
       }
 
-      // Se la registrazione va a buon fine, rimanda l'utente al login
       navigate('/login');
     } catch (err) {
       if (err instanceof Error) {
@@ -36,33 +35,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', fontFamily: 'sans-serif' }}>
-      <h2>Registrazione WikiBlank</h2>
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+    <div className="container auth-container">
+      <h2 className="title text-center">Registrazione WikiBlank</h2>
+      {error && <div className="text-danger text-center">{error}</div>}
       
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <form onSubmit={handleSubmit} className="card flex-col">
         <input 
           type="text" 
+          className="input-field"
           placeholder="Username" 
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required 
-          style={{ padding: '10px', fontSize: '16px' }}
         />
         <input 
           type="password" 
+          className="input-field"
           placeholder="Password" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required 
-          style={{ padding: '10px', fontSize: '16px' }}
         />
-        <button type="submit" style={{ padding: '10px', fontSize: '16px', cursor: 'pointer' }}>
+        <button type="submit" className="btn btn-primary">
           Registrati
         </button>
       </form>
-      <p style={{ marginTop: '20px' }}>
-        Hai già un account? <Link to="/login">Accedi qui</Link>
+      
+      <p className="text-center text-muted" style={{ marginTop: '20px' }}>
+        Hai già un account? <Link to="/login" className="link-text">Accedi qui</Link>
       </p>
     </div>
   );
