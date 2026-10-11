@@ -52,7 +52,7 @@ export default function LeaderboardPage() {
         </select>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         <table className="table">
           <thead>
             <tr>

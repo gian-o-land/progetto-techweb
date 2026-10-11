@@ -142,3 +142,51 @@ body {
   max-height: 200px;
   overflow-y: auto;
 }
+
+/* 10. Responsive Design (Mobile & Tablet) */
+@media (max-width: 600px) {
+  /* Riduciamo i margini esterni per recuperare spazio prezioso sullo schermo */
+  .container {
+    margin: 20px auto;
+    padding: 0 10px;
+  }
+
+  /* Gli elementi che su PC sono ai lati opposti (es. Titolo e Bottoni), su mobile si impilano */
+  .space-between {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch; 
+  }
+
+  .space-between h2 {
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  /* Anche i form e i menu a tendina si impilano in verticale e prendono tutto lo spazio */
+  .flex-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* I bottoni, gli input e le tendine diventano larghi al 100% per essere premuti facilmente col dito */
+  .btn, .input-field, .select-field {
+    width: 100%;
+  }
+
+  /* La barra dei bottoni in alto (Classifica, Storico, Esci) deve essere flessibile */
+  .space-between .flex-row {
+    flex-direction: row; /* Li teniamo in riga ma li facciamo andare a capo */
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .space-between .flex-row .btn {
+    width: calc(50% - 8px); /* 2 bottoni per riga */
+  }
+
+  .obfuscated-text-container {
+    font-size: 14px; /* Testo leggermente più piccolo su telefono */
+    padding: 15px;
+  }
+}
