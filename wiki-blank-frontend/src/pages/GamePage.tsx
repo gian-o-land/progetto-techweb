@@ -201,7 +201,7 @@ export default function GamePage() {
           {gameData.status === 'WON' && (
             <div className="card" style={{ backgroundColor: '#ecfdf5', borderColor: '#10b981' }}>
               <h3 style={{ color: 'var(--success-color)', marginBottom: '10px' }}>Hai Vinto! 🎉</h3>
-              <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
+              <p style={{ color: '#000000' }}>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
               <div className="flex-row" style={{ marginTop: '15px' }}>
                 <button className="btn btn-success" onClick={() => { setGameData(null); setMessage(''); }}>Nuova Partita</button>
               </div>
@@ -212,10 +212,10 @@ export default function GamePage() {
           {gameData.status === 'LOST' && (
             <div className="card" style={{ backgroundColor: '#fef2f2', borderColor: '#ef4444' }}>
               <h3 style={{ color: 'var(--danger-color)', marginBottom: '10px' }}>Ti sei arreso 🏳️</h3>
-              <p>Il titolo dell'articolo era: <strong>{gameData.articleTitle}</strong></p>
-              <p>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
+              <p style={{ color: '#000000' }}>Il titolo dell'articolo era: <strong>{gameData.articleTitle}</strong></p>
+              <p style={{ color: '#000000' }}>Tempo impiegato: <strong>{gameData.timeElapsedSec} secondi</strong></p>
               <div className="flex-row" style={{ marginTop: '15px' }}>
-                <button className="btn btn-success" onClick={() => { setGameData(null); setMessage(''); }}>Scegli un nuovo articolo</button>
+                <button className="btn btn-success" onClick={() => { setGameData(null); setMessage(''); }}>Nuova Partita</button>
               </div>
             </div>
           )}
