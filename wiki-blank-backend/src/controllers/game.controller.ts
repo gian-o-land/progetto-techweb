@@ -20,9 +20,11 @@ export const startGame = async (req: AuthRequest, res: Response): Promise<void> 
       'videogioco': [
         "Categoria:Videogiochi_d'azione",
         "Categoria:Videogiochi_di_ruolo",
-        "Categoria:Videogiochi_platform",
+        "Categoria:Videogiochi_a_piattaforma",
         "Categoria:Videogiochi_sparatutto",
-        "Categoria:Videogiochi_d'avventura"
+        "Categoria:Videogiochi_d'avventura",
+        "Categoria:Videogiochi_di_simulazione",
+        "Categoria:Videogiochi_sportivi"
       ],
       'film': [
         "Categoria:Film_commedia",
@@ -54,11 +56,10 @@ export const startGame = async (req: AuthRequest, res: Response): Promise<void> 
     }
 
     // Scegliamo una SOTTOCATEGORIA a caso dal nostro pool
-    const selectedSubcategory = targetCategoriesList[Math.floor(Math.random() * targetCategoriesList.length)];
-
-    // 1. Chiediamo a Wikipedia fino a 500 articoli appartenenti a quella specifica sottocategoria
-    const catUrl = `https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${selectedSubcategory}&cmnamespace=0&cmlimit=500&format=json`;
+    const selectedSubcategory = targetCategoriesList[Math.floor(Math.random() * targetCategoriesList.length)] as string;
     
+    // 1. Chiediamo a Wikipedia fino a 500 articoli appartenenti a quella specifica sottocategoria
+    const catUrl = `https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(selectedSubcategory)}&cmnamespace=0&cmlimit=500&format=json`;    
     const catResponse = await fetch(catUrl);
     const catData = await catResponse.json();
     const members = catData.query?.categorymembers;
