@@ -48,7 +48,7 @@ export const obfuscateText = (originalText: string, revealedWords: string[]): st
   // Convertiamo in Set per una ricerca O(1) ignorando il case sensitive
   const revealedSet = new Set(revealedWords.map(w => w.toLowerCase()));
   
-  // Trova tutte le sequenze di lettere/numeri (incluse accentate italiane)
+  // Trova tutte le sequenze di lettere/numeri
   return originalText.replace(/[a-zA-ZÀ-ÿ0-9]+/g, (word) => {
     if (revealedSet.has(word.toLowerCase())) {
       return word; // Parola indovinata, la mostra

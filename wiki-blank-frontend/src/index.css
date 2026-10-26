@@ -145,7 +145,7 @@ body {
 
 /* 10. Responsive Design (Mobile & Tablet) */
 @media (max-width: 600px) {
-  /* Riduciamo i margini esterni per recuperare spazio prezioso sullo schermo */
+  /* Riduciamo i margini esterni per recuperare spazio sullo schermo */
   .container {
     margin: 20px auto;
     padding: 0 10px;

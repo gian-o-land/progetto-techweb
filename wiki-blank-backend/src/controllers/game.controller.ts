@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../models/prismaClient';
-import { fetchValidRandomArticle, obfuscateText } from '../services/mediawiki.service';
+import { obfuscateText } from '../services/mediawiki.service';
 
 // Parole base sempre svelate all'inizio
 const DEFAULT_REVEALED_WORDS = ['il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una', 'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra', 'e', 'o', 'che'];
@@ -15,7 +15,6 @@ export const startGame = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
-    // Invece di una sola categoria radice, creiamo pool di SOTTOCATEGORIE ricchissime di articoli
     const wikiCategories: Record<string, string[]> = {
       'videogioco': [
         "Categoria:Videogiochi_d'azione",
@@ -69,7 +68,7 @@ export const startGame = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
-    // 2. Estraiamo un TITOLO a caso (da qui in poi il tuo codice rimane identico!)
+    // 2. Estraiamo un TITOLO a caso
     const randomArticle = members[Math.floor(Math.random() * members.length)];
     const selectedTitle = randomArticle.title;
     
@@ -103,7 +102,7 @@ export const startGame = async (req: AuthRequest, res: Response): Promise<void> 
         userId: userId,
         articleTitle: selectedTitle,
         originalText: articleText, // <--- Qui passiamo il testo appena scaricato!
-        revealedWords: DEFAULT_REVEALED_WORDS, // Assicurati di avere questa costante importata in cima
+        revealedWords: DEFAULT_REVEALED_WORDS, 
         status: 'IN_PROGRESS',
         category: category,
       }

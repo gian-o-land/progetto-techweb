@@ -14,6 +14,7 @@ interface GameData {
 
 export default function GamePage() {
   const [gameData, setGameData] = useState<GameData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [category, setCategory] = useState('');
   const [wordGuess, setWordGuess] = useState('');
   const [titleGuess, setTitleGuess] = useState('');
@@ -35,6 +36,8 @@ export default function GamePage() {
         }
       } catch (err) {
         console.error('Errore nel recupero della partita', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -166,7 +169,11 @@ export default function GamePage() {
         </div>
       )}
 
-      {!gameData ? (
+      {isLoading ? (
+        <div className="card text-center text-muted">
+          Caricamento partita in corso...
+        </div>
+      ) : !gameData ? (
         <div className="card flex-row">
           <select 
             className="select-field"
