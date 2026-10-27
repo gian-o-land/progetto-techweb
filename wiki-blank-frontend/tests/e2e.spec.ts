@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-// Assicurati che questa sia la porta su cui gira il tuo frontend (Vite usa solitamente la 5173)
 const BASE_URL = 'http://localhost:5173'; 
 
 test.describe('WikiBlank - Test End-to-End', () => {
